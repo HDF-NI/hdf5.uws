@@ -10,7 +10,6 @@
     "openssl": "openssl/openssl#OpenSSL_1_1_1b",
     "uSockets": "uNetworking/uSockets",
     "uWebSockets": "rimmartin/uWebSockets",
-    "ws": "websockets/ws",
     "zlib": "madler/zlib"
   },
   "devDependencies": {
