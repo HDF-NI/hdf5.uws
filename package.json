@@ -1,0 +1,37 @@
+{
+  "name": "hdf5.uws",
+  "version": "0.0.1",
+  "description": "Stream h5 data from native side to browser websockets",
+  "main": "index.js",
+  "license": "MIT",
+  "private": null,
+  "dependencies": {
+    "hdf5": "HDF-NI/hdf5.node",
+    "openssl": "openssl/openssl#OpenSSL_1_1_1b",
+    "uSockets": "uNetworking/uSockets",
+    "uWebSockets": "rimmartin/uWebSockets",
+    "ws": "websockets/ws",
+    "zlib": "madler/zlib"
+  },
+  "devDependencies": {
+    "cypress": "^3.2.0",
+    "gulp": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-rename": "^1.4.0",
+    "gulp-uglify": "^3.0.2",
+    "wait-on": "^3.3.0",
+    "cxx-mime-types": "DataDriven-CAM/cxx-mime-types",
+    "urlcpp": "rimmartin/urlcpp",
+    "uriparser": "uriparser/uriparser"
+  },
+  "scripts": {
+    "clean": "make clean",
+    "ssl": "make ssl",
+    "urlcpp": "make urlcpp",
+    "uriparser": "make uriparser",
+    "build": "make all -f test/Makefile",
+    "install": "yarn build",
+    "start": "yarn build && test/build/main",
+    "test": "yarn start && wait-on https://localhost:8888/images.html & yarn run cypress open"
+  }
+}

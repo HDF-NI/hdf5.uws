@@ -1,0 +1,152 @@
+<html><head>
+<meta http-equiv="Content-Language" content="en">
+          <meta http-equiv="Content-Type" content="text/html" charset="utf-8">
+  <title>HDF5 Interface</title>
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <script type="text/javascript" src="HDF5Interface.js"></script>
+  <style type="text/css">
+#droppable {
+  border: 5px solid blue;
+  width:  200px;
+  height: 100px;
+}      
+  </style>
+  </head>
+<body>
+<div></div><script>
+function makeImage(event, element){
+    if (event.dataTransfer) { event.dataTransfer.dropEffect = 'move'; }
+    var urlList = event.dataTransfer.getData("text/uri-list");
+    /*for(var i = 0;i<event.dataTransfer.types.length;i++){
+        console.log(event.dataTransfer.types[i]);
+    }
+    console.log(urlList);
+    for(var i = 0;i<urlList.length;i++){
+        console.log(urlList[i]);
+    }*/
+   var dataItems = event.dataTransfer.items;
+   //console.log("how many "+dataItems.length);
+   //if(dataItems.length>0)dataItems[0].getAsString(function (s){console.log(s);});
+   for (var i = 1; i < dataItems.length; i += 1) {
+    //console.log(dataItems[i].kind+" type "+dataItems[i].type);
+        while (element.firstChild) {
+          element.removeChild(element.firstChild);
+        }
+       dataItems[i].getAsString(function (file){
+        var photoplate = document.createElement("CANVAS");
+        photoplate.id="photoplate";
+        var context = photoplate.getContext("2d");
+       var img = new Image();
+         img.onload = function () {
+             photoplate.width=img.width;
+             photoplate.height=img.height;
+             context.drawImage(img, 0, 0);
+            var hdf5Interface=new HDF5Interface(9700);
+            hdf5Interface.createGroup("pmcservices/x-ray/plates", function(){
+            var theData=context.getImageData(0,0,img.width,img.height).data;
+            hdf5Interface.makeImage("pmcservices/x-ray/plates/nightwatch.jpg", theData, {name: file.name, width: img.width, height: img.height, planes: 4, npals: 4, size: 4*img.width*img.height}, function(){
+                hdf5Interface.requestImage("pmcservices/x-ray/plates/nightwatch.jpg", function(data, metaData){
+                    document.getElementById("results").appendChild(document.createTextNode(JSON.stringify(metaData)));
+                    var imageData=context.createImageData(metaData.width, metaData.height);
+                    var pos=0;
+                    // Got new data
+                   var dv = new DataView(data);
+                    for(var i=0;i<data.byteLength;i+=metaData.planes)
+                    {
+                            // set red, green, blue, and alpha:
+                            imageData.data[pos++] =dv.getUint8(i);
+                            imageData.data[pos++] = dv.getUint8(i+1);
+                            imageData.data[pos++] = dv.getUint8(i+2);
+                            (metaData.planes>3) ? imageData.data[pos++] =dv.getUint8(i+3) : imageData.data[pos++] = 255; // opaque alpha
+                    }
+                     // Display new data in browser!
+                    context.putImageData(imageData, 100, 100);
+                    var endTxt = document.createTextNode("Put");
+                    endTxt.id="put";
+                    document.getElementById("results").appendChild(endTxt);
+            
+                });
+            });
+            });
+         }
+       img.src = file;//window.URL.createObjectURL(file);
+
+        var divEditor=document.createElement("DIV");
+        divEditor.id="editor";
+        divEditor.appendChild(photoplate);
+        element.appendChild(divEditor);
+
+       });
+
+    event.preventDefault();
+   }
+    event.preventDefault();
+}
+
+function doMouseDown(event, element) {
+}
+
+function doDragStart(event, element) {
+        document.getElementById("results").appendChild(document.createTextNode("dragStartHandler "));
+  event.target.style.opacity = '0.4';  // this / e.target is the source node.
+  event.dataTransfer.effectAllowed = "copyMove";
+  //var dataURL = event.target.toDataURL();
+        //console.log(element.querySelector("#nwCanvas"));
+      var canvas = document.getElementById('nwCanvas');
+      var dataURL = canvas.toDataURL('image/png', 1.0);
+      //console.log(dataURL);
+      //var ctx = canvas.getContext('2d');
+//var imgData = ctx.getImageData(10, 10, 50, 50);        
+        var fileName="nightwatch.png";
+        event.dataTransfer.setData("text/plain", fileName)
+        //fileName=fileName.substring(fileName.lastIndexOf("/"));
+//var imageSrc = $(dragItem).prop('src');
+//  var imageHTML = $(dragItem).prop('outerHTML');        
+        event.dataTransfer.setData("image/png", dataURL);
+  //event.dataTransfer.setData( "DownloadURL", 'image/png:' +fileName+":"+dataURL);
+  //event.dataTransfer.setData("text/x-moz-url", dataURL);
+  //event.dataTransfer.setData("application/x-moz-file-promise-url", dataURL);
+  //event.dataTransfer.setData("application/x-moz-file-promise-dest-filename", fileName);
+  //ev.dataTransfer.mozSetDataAt('application/x-moz-file-promise',
+  //                new dataProvider(),
+  //                0, Components.interfaces.nsISupports);
+  //var img = new Image(); 
+  //img.src = 'nightwatch.jpg'; 
+  //event.dataTransfer.setDragImage(img, 10, 10);
+  //event.preventDefault();
+}
+
+function doDragOver(e) {
+//    console.log("doDragOver "+e.target.id);
+    e.preventDefault();
+};
+
+function dragHandler(ev, element) {
+    //console.log(ev.target.id);
+    //ev.dataTransfer.setData("text", ev.target.id);
+    //ev.preventDefault();
+}
+
+function dragEndHandler(ev, element) {
+//    console.log("dragEndHandler "+ev.target.id);
+  ev.target.style.opacity = '1.0';  // this / e.target is the source node.
+  ev.preventDefault();
+}
+
+</script><div id="draggable" >
+    <canvas id="nwCanvas" draggable="true" width="550" height="381" onmousedown="doMouseDown(event, this)" ondragstart="doDragStart(event, this)" ondragover="doDragOver(event)" ondrag="dragHandler(event, this)" ondragend="dragEndHandler(event, this)"></canvas>
+    <script>
+      var canvas = document.getElementById('nwCanvas');
+      var context = canvas.getContext('2d');
+      var imageObj = new Image();
+
+      imageObj.onload = function() {
+        context.drawImage(imageObj, 0, 0);
+      };
+      imageObj.src = 'nightwatch.jpg';
+    </script>
+    </div>
+<div id="droppable" dropzone="copy file:image/png file:image/gif file:image/jpeg " ondrop="makeImage(event, this)" style="height:381px;width:550px" ondragover="doDragOver(event)"></div>
+<output id="results"/>
+</body>
+</html>
